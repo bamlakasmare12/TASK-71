@@ -20,11 +20,9 @@ COPY docker/php/php-local.ini /usr/local/etc/php/conf.d/php-local.ini
 
 WORKDIR /var/www/html
 
-# Install dependencies at build time so containers work immediately
-COPY backend/composer.json backend/composer.lock ./
-RUN composer install --no-dev --no-scripts --no-progress --prefer-dist
-COPY backend/ .
-RUN composer dump-autoload --optimize
+COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
+ENTRYPOINT ["entrypoint.sh"]
 EXPOSE 9000
 CMD ["php-fpm"]
