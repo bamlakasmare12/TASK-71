@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Providers;
+
+use App\Models\Reservation;
+use App\Models\Service;
+use App\Policies\ReservationPolicy;
+use App\Policies\ServicePolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        Gate::policy(Service::class, ServicePolicy::class);
+        Gate::policy(Reservation::class, ReservationPolicy::class);
+    }
+}
