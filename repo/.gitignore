@@ -13,6 +13,7 @@ backend/storage/pail/
 # Cache
 backend/.phpunit.cache
 backend/.phpunit.result.cache
+backend/.composer_installing
 
 # TLS certs (generated locally)
 docker/nginx/ssl/
