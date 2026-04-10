@@ -2,7 +2,7 @@
 #
 # ResearchHub - Test Runner
 # Runs Unit, Integration, and Frontend test suites.
-# Detects whether PHP is local or needs Docker, then runs accordingly.
+# Always runs inside the Docker app container.
 #
 set -uo pipefail
 
@@ -14,22 +14,37 @@ NC='\033[0m'
 pass() { echo -e "  ${GREEN}PASS${NC} $1"; }
 fail() { echo -e "  ${RED}FAIL${NC} $1"; }
 
-# Detect runtime: local PHP or Docker
-if command -v php >/dev/null 2>&1 && [ -f "backend/artisan" ]; then
-    RUN="php backend/artisan"
-else
-    if ! docker compose ps app --format '{{.State}}' 2>/dev/null | grep -q "running"; then
-        echo -e "${RED}No local PHP and Docker app container is not running.${NC}"
-        echo "  Start Docker first:  docker compose up -d"
-        exit 1
-    fi
-    RUN="docker compose exec -T -w /var/www/html app php artisan"
-fi
+RUN="docker compose exec -T -w /var/www/html app php artisan"
 
 echo ""
 echo -e "${BOLD}================================================${NC}"
 echo -e "${BOLD}  ResearchHub - Test Runner${NC}"
 echo -e "${BOLD}================================================${NC}"
+
+# ─── Verify app container is ready ───
+echo ""
+echo -e "${BOLD}Checking app container...${NC}"
+
+if ! docker compose ps app --format '{{.State}}' 2>/dev/null | grep -q "running"; then
+    fail "App container is not running."
+    echo "  Start Docker first:  docker compose up -d"
+    exit 1
+fi
+
+# Wait for vendor to be installed (entrypoint runs composer install)
+WAIT=0
+while ! docker compose exec -T -w /var/www/html app test -f vendor/autoload.php 2>/dev/null; do
+    if [ $WAIT -ge 120 ]; then
+        fail "Timed out waiting for Composer dependencies (120s)"
+        exit 1
+    fi
+    if [ $WAIT -eq 0 ]; then
+        echo "  Waiting for Composer dependencies to install..."
+    fi
+    sleep 5
+    WAIT=$((WAIT + 5))
+done
+pass "App container ready (vendor installed)"
 
 # ─── Unit Tests ───
 echo ""
