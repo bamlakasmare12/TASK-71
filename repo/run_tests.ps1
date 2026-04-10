@@ -9,8 +9,8 @@ function Pass($msg) { Write-Host "  PASS " -ForegroundColor Green -NoNewline; Wr
 function Fail($msg) { Write-Host "  FAIL " -ForegroundColor Red -NoNewline; Write-Host $msg }
 
 # Detect runtime
-if (Get-Command php -ErrorAction SilentlyContinue) {
-    $run = "php"
+if ((Get-Command php -ErrorAction SilentlyContinue) -and (Test-Path "backend/artisan")) {
+    $run = "php backend/artisan"
 } else {
     $state = docker compose ps app --format '{{.State}}' 2>$null
     if ($state -ne "running") {
@@ -18,7 +18,7 @@ if (Get-Command php -ErrorAction SilentlyContinue) {
         Write-Host "  Start Docker first:  docker compose up -d"
         exit 1
     }
-    $run = "docker compose exec -T app php"
+    $run = "docker compose exec -T -w /var/www/html app php artisan"
 }
 
 Write-Host "`n================================================"
@@ -28,22 +28,22 @@ Write-Host "================================================"
 # Unit Tests
 Write-Host "`n[1/3] Unit Tests"
 Write-Host ("─" * 45)
-Invoke-Expression "$run artisan migrate:fresh --force --quiet" 2>$null
-Invoke-Expression "$run artisan test --testsuite=Unit" 2>&1 | ForEach-Object { Write-Host $_ }
+Invoke-Expression "$run migrate:fresh --force --quiet" 2>$null
+Invoke-Expression "$run test --testsuite=Unit" 2>&1 | ForEach-Object { Write-Host $_ }
 $unitExit = $LASTEXITCODE
 
 # Integration Tests
 Write-Host "`n[2/3] Integration Tests"
 Write-Host ("─" * 45)
-Invoke-Expression "$run artisan migrate:fresh --force --quiet" 2>$null
-Invoke-Expression "$run artisan test --testsuite=Feature" 2>&1 | ForEach-Object { Write-Host $_ }
+Invoke-Expression "$run migrate:fresh --force --quiet" 2>$null
+Invoke-Expression "$run test --testsuite=Feature" 2>&1 | ForEach-Object { Write-Host $_ }
 $featureExit = $LASTEXITCODE
 
 # Frontend Tests (Livewire)
 Write-Host "`n[3/3] Frontend Tests (Livewire)"
 Write-Host ("─" * 45)
-Invoke-Expression "$run artisan migrate:fresh --force --quiet" 2>$null
-Invoke-Expression "$run artisan test --testsuite=Feature --filter='LoginTest|CatalogTest|StepUpAuth|BruteForce|PasswordRotation|SingleLogout'" 2>&1 | ForEach-Object { Write-Host $_ }
+Invoke-Expression "$run migrate:fresh --force --quiet" 2>$null
+Invoke-Expression "$run test --testsuite=Feature --filter='LoginTest|CatalogTest|StepUpAuth|BruteForce|PasswordRotation|SingleLogout'" 2>&1 | ForEach-Object { Write-Host $_ }
 $frontendExit = $LASTEXITCODE
 
 # Summary
