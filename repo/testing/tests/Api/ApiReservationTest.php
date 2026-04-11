@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Api;
+namespace Tests\Api;
 
 use App\Enums\AuditAction;
 use App\Enums\ReservationStatus;
@@ -136,7 +136,6 @@ class ApiReservationTest extends TestCase
         ]);
         $reservationId = $createResponse->json('data.id');
 
-        // Confirm first
         $this->postJson("/api/reservations/{$reservationId}/confirm");
 
         $response = $this->postJson("/api/reservations/{$reservationId}/cancel", [
@@ -244,7 +243,6 @@ class ApiReservationTest extends TestCase
         $response->assertSuccessful()
             ->assertJsonPath('data.status', ReservationStatus::Pending->value);
 
-        // Verify audit log for reschedule
         $this->assertDatabaseHas('audit_logs', [
             'action' => AuditAction::ReservationRescheduled->value,
         ]);
@@ -254,16 +252,12 @@ class ApiReservationTest extends TestCase
     {
         $this->actingAs($this->learner);
 
-        // Create
         $createResponse = $this->postJson('/api/reservations', [
             'time_slot_id' => $this->slot->id,
         ]);
         $reservationId = $createResponse->json('data.id');
 
-        // Confirm
         $this->postJson("/api/reservations/{$reservationId}/confirm");
-
-        // Cancel
         $this->postJson("/api/reservations/{$reservationId}/cancel");
 
         $this->assertDatabaseHas('audit_logs', ['action' => AuditAction::ReservationCreated->value]);

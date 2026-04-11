@@ -1,13 +1,12 @@
 <?php
 
-namespace Tests\Feature\Api;
+namespace Tests\Api;
 
 use App\Enums\UserRole;
 use App\Models\ImportBatch;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class ApiImportExportTest extends TestCase
@@ -167,7 +166,6 @@ class ApiImportExportTest extends TestCase
             'conflict_strategy' => 'admin_override',
         ]);
 
-        // Create unresolved conflict
         $batch->conflicts()->create([
             'entity' => 'services',
             'existing_id' => 1,

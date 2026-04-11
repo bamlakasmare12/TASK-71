@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Api;
+namespace Tests\Api;
 
 use App\Enums\ReservationStatus;
 use App\Enums\UserRole;
@@ -94,7 +94,6 @@ class ApiTenantIsolationTest extends TestCase
             'status' => ReservationStatus::Confirmed,
         ]);
 
-        // User A sees only their reservation
         $this->actingAs($this->userA);
         $response = $this->getJson('/api/reservations');
         $response->assertOk();
@@ -102,7 +101,6 @@ class ApiTenantIsolationTest extends TestCase
         $this->assertCount(1, $data);
         $this->assertEquals($this->userA->id, $data[0]['user_id']);
 
-        // User B sees only their reservation
         $this->actingAs($this->userB);
         $response = $this->getJson('/api/reservations');
         $response->assertOk();
@@ -157,16 +155,13 @@ class ApiTenantIsolationTest extends TestCase
 
     public function test_api_favorites_are_isolated(): void
     {
-        // User A favorites a service
         $this->actingAs($this->userA);
         $this->postJson("/api/catalog/{$this->service->id}/favorite");
 
-        // User A sees their favorite
         $response = $this->getJson('/api/catalog/favorites');
         $response->assertOk();
         $this->assertCount(1, $response->json('data'));
 
-        // User B sees no favorites
         $this->actingAs($this->userB);
         $response = $this->getJson('/api/catalog/favorites');
         $response->assertOk();

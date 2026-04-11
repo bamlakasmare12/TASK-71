@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Api;
+namespace Tests\Api;
 
 use App\Enums\AuditAction;
 use App\Enums\UserRole;
@@ -81,13 +81,11 @@ class ApiAuthTest extends TestCase
 
     public function test_api_login_locks_after_5_failed_attempts(): void
     {
-        // Simulate a user already at the lockout threshold
-        $user = $this->createUser([
+        $this->createUser([
             'locked_until' => now()->addMinutes(15),
             'failed_login_attempts' => 5,
         ]);
 
-        // Locked user gets 423 on next attempt (even with correct password)
         $response = $this->postJson('/api/auth/login', [
             'username' => 'testuser',
             'password' => 'TestPassword123!@#',

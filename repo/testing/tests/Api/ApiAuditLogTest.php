@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Api;
+namespace Tests\Api;
 
 use App\Enums\AuditAction;
 use App\Enums\ReservationStatus;
@@ -92,7 +92,6 @@ class ApiAuditLogTest extends TestCase
 
     public function test_no_show_processing_creates_audit_logs(): void
     {
-        // Create a confirmed reservation with a past check-in window
         $pastSlot = TimeSlot::create([
             'service_id' => $this->service->id,
             'start_time' => now()->subMinutes(30),
@@ -126,14 +125,12 @@ class ApiAuditLogTest extends TestCase
     {
         $this->actingAs($this->learner);
 
-        // Create and confirm reservation
         $response = $this->postJson('/api/reservations', [
             'time_slot_id' => $this->slot->id,
         ]);
         $reservationId = $response->json('data.id');
         $this->postJson("/api/reservations/{$reservationId}/confirm");
 
-        // Manually set to checked in for checkout test
         $reservation = Reservation::find($reservationId);
         $reservation->update([
             'status' => ReservationStatus::CheckedIn,

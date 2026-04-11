@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Api;
+namespace Tests\Api;
 
 use App\Enums\UserRole;
 use App\Models\FormRule;
@@ -31,7 +31,6 @@ class ApiDynamicValidationTest extends TestCase
 
     public function test_dynamic_form_rules_enforce_min_length_on_service_create(): void
     {
-        // Create a dynamic form rule requiring title to be at least 20 characters
         FormRule::create([
             'entity' => 'service',
             'field' => 'title',
@@ -41,7 +40,6 @@ class ApiDynamicValidationTest extends TestCase
 
         $this->actingAs($this->editor);
 
-        // Short title should fail validation
         $response = $this->postJson('/api/catalog', [
             'title' => 'Short',
             'description' => 'A detailed description of the service.',
@@ -55,7 +53,6 @@ class ApiDynamicValidationTest extends TestCase
 
     public function test_dynamic_form_rules_allow_valid_data(): void
     {
-        // Create a dynamic form rule requiring title min 5
         FormRule::create([
             'entity' => 'service',
             'field' => 'title',
@@ -78,7 +75,6 @@ class ApiDynamicValidationTest extends TestCase
 
     public function test_inactive_form_rules_are_not_enforced(): void
     {
-        // Create an inactive form rule
         FormRule::create([
             'entity' => 'service',
             'field' => 'title',
